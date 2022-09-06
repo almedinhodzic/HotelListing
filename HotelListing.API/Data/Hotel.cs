@@ -4,6 +4,9 @@ namespace HotelListing.API.Data
 {
     public class Hotel
     {
+        /// <summary>
+        /// <value>This is the ID field of table Hotel</value>
+        /// </summary>
         public int Id { get; set; } 
         public string? Name { get; set; }
         public string? Address { get; set; }
