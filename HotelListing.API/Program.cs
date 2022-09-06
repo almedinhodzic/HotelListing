@@ -1,3 +1,5 @@
+using HotelListing.API.Data;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace HotelListing.API
@@ -7,6 +9,15 @@ namespace HotelListing.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Get connection string
+            var connectionString = builder.Configuration.GetConnectionString("Default");
+
+            // Connect to SQL server
+            builder.Services.AddDbContext<HotelListingDbContext>(options =>
+            {
+                options.UseSqlServer(connectionString);
+            });
 
             // Add services to the container.
 
