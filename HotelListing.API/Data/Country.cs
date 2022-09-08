@@ -1,4 +1,5 @@
-﻿namespace HotelListing.API.Data
+﻿
+namespace HotelListing.API.Data
 {
     public class Country
     {
