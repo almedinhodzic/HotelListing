@@ -114,7 +114,7 @@ namespace HotelListing.API.Controllers
 
             return NoContent();
         }
-
+         
         private async Task<bool> HotelExists(int id)
         {
             return await hotelRepository.Exists(id);

@@ -1,9 +1,15 @@
 using HotelListing.API.Business.Contracts;
 using HotelListing.API.Business.Repository;
 using HotelListing.API.Configurations;
+using HotelListing.API.Contracts;
 using HotelListing.API.Data;
+using HotelListing.API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 namespace HotelListing.API
 {
@@ -32,6 +38,35 @@ namespace HotelListing.API
                 .AddScoped<ICountryRepository, CountryRepository>();
             builder.Services
                 .AddScoped<IHotelRepository, HotelRepository>();
+
+            // Auth Service
+            builder.Services
+                .AddScoped<IAuthManager, AuthManager>();
+
+            // Add Identity
+            builder.Services.AddIdentityCore<ApiUser>()
+                .AddRoles<IdentityRole>()
+                .AddTokenProvider<DataProtectorTokenProvider<ApiUser>>("HotelListingApi")
+                .AddEntityFrameworkStores<HotelListingDbContext>()
+                .AddDefaultTokenProviders();
+
+            // JWT Authentication
+            builder.Services.AddAuthentication(options => {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // "Bearer"
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options => {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero,
+                    ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+                    ValidAudience = builder.Configuration["JwtSettings:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+                };
+            });
 
             // Add services to the container.
 
@@ -64,10 +99,12 @@ namespace HotelListing.API
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
             // Use new cors
             app.UseCors("AllowAll");
+
+            // Use authentication middleware
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 
